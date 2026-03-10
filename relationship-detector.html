@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Relationship Detector™</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    min-height: 100vh;
+    background: #0f0c29;
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    font-family: 'Nunito', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .stars {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .star {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle 3s infinite alternate;
+  }
+
+  @keyframes twinkle {
+    0% { opacity: 0.2; transform: scale(1); }
+    100% { opacity: 1; transform: scale(1.4); }
+  }
+
+  .card {
+    position: relative;
+    z-index: 10;
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 32px;
+    padding: 50px 45px;
+    max-width: 480px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+  }
+
+  .emoji-title {
+    font-size: 60px;
+    margin-bottom: 10px;
+    animation: bounce 1.5s infinite;
+  }
+
+  @keyframes bounce {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    color: #fff;
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+  }
+
+  .subtitle {
+    color: rgba(255,255,255,0.5);
+    font-size: 0.85rem;
+    margin-bottom: 30px;
+  }
+
+  input {
+    width: 100%;
+    padding: 16px 22px;
+    border-radius: 50px;
+    border: 2px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.1);
+    color: white;
+    font-size: 1.1rem;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    outline: none;
+    text-align: center;
+    transition: all 0.3s;
+    letter-spacing: 1px;
+  }
+
+  input::placeholder { color: rgba(255,255,255,0.35); font-weight: 600; }
+  input:focus { border-color: #f093fb; background: rgba(240,147,251,0.15); box-shadow: 0 0 20px rgba(240,147,251,0.3); }
+
+  .detect-btn {
+    margin-top: 18px;
+    width: 100%;
+    padding: 16px;
+    border-radius: 50px;
+    border: none;
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    color: white;
+    font-size: 1.1rem;
+    font-family: 'Fredoka One', cursive;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 8px 25px rgba(245,87,108,0.4);
+  }
+
+  .detect-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(245,87,108,0.6); }
+  .detect-btn:active { transform: translateY(0); }
+
+  #result-screen { display: none; }
+
+  .name-tag {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.5rem;
+    color: #f093fb;
+    text-shadow: 0 0 30px rgba(240,147,251,0.6);
+    margin-bottom: 10px;
+  }
+
+  .question-text {
+    color: rgba(255,255,255,0.85);
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 30px;
+    line-height: 1.5;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    position: relative;
+  }
+
+  .yes-btn {
+    padding: 15px 45px;
+    border-radius: 50px;
+    border: none;
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
+    color: #1a1a2e;
+    font-size: 1.2rem;
+    font-family: 'Fredoka One', cursive;
+    cursor: pointer;
+    box-shadow: 0 8px 25px rgba(67,233,123,0.4);
+    transition: all 0.3s;
+    letter-spacing: 1px;
+  }
+
+  .yes-btn:hover { transform: scale(1.08); }
+
+  .no-btn {
+    padding: 15px 45px;
+    border-radius: 50px;
+    border: none;
+    background: linear-gradient(135deg, #f5576c, #f093fb);
+    color: white;
+    font-size: 1.2rem;
+    font-family: 'Fredoka One', cursive;
+    cursor: pointer;
+    box-shadow: 0 8px 25px rgba(245,87,108,0.4);
+    transition: transform 0.1s;
+    position: fixed;
+    letter-spacing: 1px;
+    z-index: 999;
+  }
+
+  #victory-screen { display: none; }
+
+  .victory-emoji { font-size: 70px; animation: spin-zoom 0.6s ease-out; }
+
+  @keyframes spin-zoom {
+    0% { transform: scale(0) rotate(-180deg); opacity: 0; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+
+  .victory-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    color: #43e97b;
+    margin: 12px 0 8px;
+    text-shadow: 0 0 20px rgba(67,233,123,0.5);
+  }
+
+  .victory-msg {
+    color: rgba(255,255,255,0.75);
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  }
+
+  .restart-btn {
+    padding: 13px 35px;
+    border-radius: 50px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.1);
+    color: white;
+    font-size: 0.95rem;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .restart-btn:hover { background: rgba(255,255,255,0.2); }
+
+  .confetti-piece {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    animation: fall linear forwards;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  @keyframes fall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  .attempts-counter {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.3);
+    margin-top: 12px;
+    min-height: 18px;
+  }
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars"></div>
+
+<div class="card">
+
+  <!-- Screen 1: Enter Name -->
+  <div id="name-screen">
+    <div class="emoji-title">🔍</div>
+    <h1>Relationship Detector™</h1>
+    <p class="subtitle">Advanced AI-Powered GF Detection System v9.99</p>
+    <input type="text" id="name-input" placeholder="Enter your name..." maxlength="20" />
+    <button class="detect-btn" onclick="showResult()">🚀 Run Analysis</button>
+  </div>
+
+  <!-- Screen 2: Yes / No -->
+  <div id="result-screen">
+    <div class="emoji-title">💘</div>
+    <div class="name-tag" id="display-name"></div>
+    <div class="question-text">
+      Does <span id="name-span" style="color:#f093fb"></span> have a girlfriend? 🤔
+    </div>
+    <div class="btn-row">
+      <button class="yes-btn" onclick="showVictory()">✅ YES</button>
+      <button class="no-btn" id="no-btn" onclick="runAway()">❌ NO</button>
+    </div>
+    <p class="attempts-counter" id="attempts-text"></p>
+  </div>
+
+  <!-- Screen 3: Victory -->
+  <div id="victory-screen">
+    <div class="victory-emoji">🎉</div>
+    <div class="victory-title">CONFIRMED! 💯</div>
+    <p class="victory-msg">
+      The system has officially detected that <strong id="victory-name" style="color:#f093fb"></strong>
+      absolutely, 100% has a girlfriend! 💝<br><br>
+      There was never any doubt. The NO button tried its best to escape... but it failed miserably 😂
+    </p>
+    <button class="restart-btn" onclick="restart()">🔄 Try with another name</button>
+  </div>
+
+</div>
+
+<script>
+  let userName = '';
+  let noAttempts = 0;
+  let noBtn;
+  let isMoving = false;
+
+  // Generate stars
+  const starsContainer = document.getElementById('stars');
+  for (let i = 0; i < 80; i++) {
+    const star = document.createElement('div');
+    star.classList.add('star');
+    const size = Math.random() * 3 + 1;
+    star.style.cssText = `
+      width: ${size}px; height: ${size}px;
+      top: ${Math.random() * 100}%;
+      left: ${Math.random() * 100}%;
+      animation-delay: ${Math.random() * 3}s;
+      animation-duration: ${2 + Math.random() * 3}s;
+    `;
+    starsContainer.appendChild(star);
+  }
+
+  function showResult() {
+    const input = document.getElementById('name-input').value.trim();
+    if (!input) {
+      const inp = document.getElementById('name-input');
+      inp.focus();
+      inp.style.borderColor = '#f5576c';
+      setTimeout(() => inp.style.borderColor = '', 800);
+      return;
+    }
+    userName = input.charAt(0).toUpperCase() + input.slice(1);
+    document.getElementById('display-name').textContent = 'Hey, ' + userName + '! 👋';
+    document.getElementById('name-span').textContent = userName;
+    document.getElementById('victory-name').textContent = userName;
+
+    document.getElementById('name-screen').style.display = 'none';
+    document.getElementById('result-screen').style.display = 'block';
+
+    noBtn = document.getElementById('no-btn');
+    const card = document.querySelector('.card');
+    const rect = card.getBoundingClientRect();
+    noBtn.style.left = (rect.left + rect.width / 2 + 20) + 'px';
+    noBtn.style.top = (rect.top + rect.height / 2 + 60) + 'px';
+    noAttempts = 0;
+  }
+
+  function runAway() {
+    noAttempts++;
+    if (noAttempts >= 5) {
+      showVictory();
+      return;
+    }
+    if (noAttempts === 3) {
+      document.getElementById('attempts-text').textContent = '😏 The NO button is getting tired...';
+    } else if (noAttempts === 4) {
+      document.getElementById('attempts-text').textContent = '😂 One more try and it gives up!';
+    }
+    moveNoButton();
+  }
+
+  function moveNoButton() {
+    const margin = 80;
+    const btnW = noBtn.offsetWidth;
+    const btnH = noBtn.offsetHeight;
+    const maxX = window.innerWidth - btnW - margin;
+    const maxY = window.innerHeight - btnH - margin;
+    const newX = margin + Math.random() * (maxX - margin);
+    const newY = margin + Math.random() * (maxY - margin);
+    noBtn.style.left = newX + 'px';
+    noBtn.style.top = newY + 'px';
+    noBtn.style.transform = 'rotate(' + (Math.random() * 20 - 10) + 'deg)';
+    setTimeout(() => { noBtn.style.transform = ''; }, 300);
+  }
+
+  document.addEventListener('mousemove', (e) => {
+    if (!noBtn || document.getElementById('result-screen').style.display !== 'block') return;
+    const rect = noBtn.getBoundingClientRect();
+    const btnCenterX = rect.left + rect.width / 2;
+    const btnCenterY = rect.top + rect.height / 2;
+    const dist = Math.hypot(e.clientX - btnCenterX, e.clientY - btnCenterY);
+    if (dist < 80 && !isMoving) {
+      isMoving = true;
+      moveNoButton();
+      setTimeout(() => { isMoving = false; }, 300);
+    }
+  });
+
+  function showVictory() {
+    document.getElementById('result-screen').style.display = 'none';
+    document.getElementById('victory-screen').style.display = 'block';
+    if (noBtn) noBtn.style.display = 'none';
+    launchConfetti();
+  }
+
+  function launchConfetti() {
+    const colors = ['#f093fb', '#f5576c', '#43e97b', '#38f9d7', '#ffd700', '#ff6b6b', '#74b9ff'];
+    for (let i = 0; i < 80; i++) {
+      setTimeout(() => {
+        const piece = document.createElement('div');
+        piece.classList.add('confetti-piece');
+        piece.style.cssText = `
+          left: ${Math.random() * 100}vw;
+          top: -10px;
+          background: ${colors[Math.floor(Math.random() * colors.length)]};
+          width: ${6 + Math.random() * 8}px;
+          height: ${6 + Math.random() * 8}px;
+          animation-duration: ${2 + Math.random() * 2}s;
+          animation-delay: ${Math.random() * 1.5}s;
+          border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+        `;
+        document.body.appendChild(piece);
+        setTimeout(() => piece.remove(), 4000);
+      }, i * 30);
+    }
+  }
+
+  function restart() {
+    userName = '';
+    noAttempts = 0;
+    document.getElementById('name-input').value = '';
+    document.getElementById('attempts-text').textContent = '';
+    if (noBtn) { noBtn.style.display = 'block'; }
+    document.getElementById('victory-screen').style.display = 'none';
+    document.getElementById('result-screen').style.display = 'none';
+    document.getElementById('name-screen').style.display = 'block';
+  }
+
+  document.getElementById('name-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') showResult();
+  });
+</script>
+</body>
+</html>
